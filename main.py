@@ -195,13 +195,31 @@ async def convert(ctx, point_amount: int, from_symbol: to_upper, to_symbol: to_u
     
     #Calculate if conversion rate is not 0
     else:
-      #Calculate converted amount for output. Format to 2 decimal places
-      conv_amount = '{:.2f}'.format(float(point_amount)*rate)
+      if point_amount % 1000 == 0:
+        #Calculate converted amount for output. Format with commas as thousands separator
+        conv_amount = '{:,}'.format(round((point_amount)*rate))
+        point_amount = '{:,}'.format(point_amount)
 
-      #Message to send:
-      message = '**Converted result:**\n> {} {} pts = {} {} pts'.format(point_amount, from_symbol, conv_amount, to_symbol)
+        #Message to send:
+        message = '**Converted result:**\n> {} {} pts = {} {} pts'.format(point_amount, from_symbol, conv_amount, to_symbol)
 
-      await ctx.channel.send(message)
+        await ctx.channel.send(message)
+      
+      else:
+        #Get new point amount for calculation by subtracting the remaining points(since most rewards programs required to convert an amount that is divisible to 1000):
+        remaining_points = point_amount % 1000
+        point_amount = point_amount - remaining_points
+        
+        #Calculate converted amount for output.
+        #Format numbers with commas as thousands separator
+        conv_amount = '{:,}'.format(round((point_amount)*rate))
+        point_amount = '{:,}'.format(point_amount)
+        
+        #Message to send:
+        message = '**Converted result:**\n> {} {} pts = {} {} pts\nRemaining {} points: {}'.format(point_amount, from_symbol, conv_amount, to_symbol, from_symbol, remaining_points)
+
+        await ctx.channel.send(message)
+
 
 #Handle error - Global scope:
 @bot.event
